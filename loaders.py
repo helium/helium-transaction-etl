@@ -16,6 +16,13 @@ def geo_index(h):
     return {"type": "Point", "coordinates": [coordinates[1], coordinates[0]]}
 
 
+def get_latest_inventory_height(settings: Settings) -> int:
+    url = settings.latest_inventories_url
+    inventories = requests.get(url).json()
+    inventory_height = int(parse.parse("gateway_inventory_{0}.csv.gz", inventories["gateway_inventory"].split("/")[-1])[0])
+    return inventory_height
+
+
 def process_gateway_inventory(settings: Settings) -> (pd.DataFrame, int):
     gz_path = Path("gateway_inventory_latest.csv.gz")
     csv_path = Path("gateway_inventory_latest.csv")

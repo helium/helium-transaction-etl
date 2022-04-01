@@ -7,7 +7,7 @@ from models.transactions.payment_v2 import *
 from models.transactions.payment_v1 import *
 from models.migrations import *
 from client import BlockchainNodeClient
-from loaders import process_gateway_inventory
+from loaders import process_gateway_inventory, get_latest_inventory_height
 from settings import Settings
 
 from sqlalchemy.orm import sessionmaker
@@ -53,10 +53,13 @@ class Follower(object):
             t = time.time()
 
             retry = 0
+
             while retry < 50:
                 try:
-                    if self.sync_height - self.inventory_height > 500:
-                        self.update_gateway_inventory()
+                    if (self.sync_height - self.inventory_height > 500) and (self.sync_height % 100 == 0):
+                        available_height = get_latest_inventory_height(self.settings)
+                        if available_height > self.inventory_height:
+                            self.update_gateway_inventory()
                     self.process_block(self.sync_height)
                     self.delete_old_receipts()
                     break
