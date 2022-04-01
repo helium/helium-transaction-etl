@@ -57,13 +57,17 @@ class Follower(object):
             while retry < 50:
                 try:
                     if (self.sync_height - self.inventory_height > 500) and (self.sync_height % 100 == 0):
+                        print("Checking for new dump of gateway_inventory")
                         available_height = get_latest_inventory_height(self.settings)
                         if available_height > self.inventory_height:
+                            print("Found one!")
                             self.update_gateway_inventory()
+                        else:
+                            print("No new version found.")
                     self.process_block(self.sync_height)
                     self.delete_old_receipts()
                     break
-                except ValidationError:
+                except (ValidationError, AttributeError):
                     print("couldn't find transaction...retrying")
                     time.sleep(10)
                     retry += 1
