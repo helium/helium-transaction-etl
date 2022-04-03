@@ -48,3 +48,17 @@ def process_gateway_inventory(settings: Settings) -> (pd.DataFrame, int):
     inventory_height = int(parse.parse("gateway_inventory_{0}.csv.gz", inventories["gateway_inventory"].split("/")[-1])[0])
 
     return data, inventory_height
+
+
+def get_denylist(settings: Settings) -> pd.DataFrame:
+
+    denylist = pd.DataFrame(requests.get(settings.denylist_url).text.split(",\n"))
+    denylist.columns = ["address"]
+    denylist.set_index("address")
+    return denylist
+
+
+def get_latest_denylist_tag() -> str:
+
+    r = requests.get("https://api.github.com/repos/helium/denylist/releases/latest")
+    return r.json()["tag_name"]

@@ -65,6 +65,12 @@ class GatewayInventory(Base):
     payer = Column(Text)
 
 
+class Denylist(Base):
+    __tablename = "denylist"
+
+    address = Column(Text, primary_key=True)
+
+
 class FollowerInfo(Base):
     __tablename__ = "follower_info"
 

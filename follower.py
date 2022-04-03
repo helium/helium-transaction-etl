@@ -7,7 +7,7 @@ from models.transactions.payment_v2 import *
 from models.transactions.payment_v1 import *
 from models.migrations import *
 from client import BlockchainNodeClient
-from loaders import process_gateway_inventory, get_latest_inventory_height
+from loaders import *
 from settings import Settings
 
 from sqlalchemy.orm import sessionmaker
@@ -33,11 +33,16 @@ class Follower(object):
         self.first_block: Optional[int] = None
         self.sync_height: Optional[int] = None
         self.inventory_height: Optional[int] = None
+        self.denylist_tag: Optional[int] = None
 
     def run(self):
         if self.settings.gateway_inventory_bootstrap:
             self.update_gateway_inventory()
             print("Gateway inventory imported successfully")
+
+        if self.settings.denylist_bootstrap:
+            self.update_denylist()
+            print("Denylist imported successfully")
 
         try:
             self.get_follower_info()
@@ -64,6 +69,15 @@ class Follower(object):
                             self.update_gateway_inventory()
                         else:
                             print("No new version found.")
+
+                        print("Checking for new release of denylist")
+                        latest_tag = int(get_latest_denylist_tag())
+                        if latest_tag != self.denylist_tag:
+                            print("Found one!")
+                            self.update_denylist()
+                        else:
+                            print("No new version found.")
+
                     self.process_block(self.sync_height)
                     self.delete_old_receipts()
                     break
@@ -82,6 +96,7 @@ class Follower(object):
         self.sync_height = self.session.query(FollowerInfo.value).filter(FollowerInfo.name == "sync_height").one()[0]
         self.first_block = self.session.query(FollowerInfo.value).filter(FollowerInfo.name == "first_block").one()[0]
         self.inventory_height = self.session.query(FollowerInfo.value).filter(FollowerInfo.name == "inventory_height").one()[0]
+        self.denylist_tag = self.session.query(FollowerInfo.value).filter(FollowerInfo.name == "denylist_tag").one()[0]
 
     def get_first_block(self):
         print("Getting first block...")
@@ -110,7 +125,8 @@ class Follower(object):
             FollowerInfo(name="height", value=self.height),
             FollowerInfo(name="first_block", value=self.first_block),
             FollowerInfo(name="sync_height", value=self.sync_height),
-            FollowerInfo(name="inventory_height", value=self.inventory_height)
+            FollowerInfo(name="inventory_height", value=self.inventory_height),
+            FollowerInfo(name="denylist_tag", value=self.denylist_tag)
         ]
 
         try:
@@ -131,6 +147,13 @@ class Follower(object):
         gateway_inventory.to_sql("gateway_inventory", con=self.engine, if_exists="replace")
         self.inventory_height = inventory_height
         print(f"Done. Inventory up to date as of block {self.inventory_height}")
+
+    def update_denylist(self):
+        print("Updating denylist...")
+        denylist = get_denylist(self.settings)
+        denylist.to_sql("denylist", con=self.engine, if_exists="replace")
+        self.denylist_tag = int(get_latest_denylist_tag())
+        print(f"Done. Denylist up to date as of tag {self.denylist_tag}")
 
     def process_block(self, height: int):
         block = self.client.block_get(height, None)
