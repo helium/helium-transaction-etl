@@ -66,7 +66,7 @@ class GatewayInventory(Base):
 
 
 class Denylist(Base):
-    __tablename = "denylist"
+    __tablename__ = "denylist"
 
     address = Column(Text, primary_key=True)
 
