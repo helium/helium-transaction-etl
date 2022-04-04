@@ -144,8 +144,7 @@ class Follower(object):
     def update_gateway_inventory(self):
         print("Updating gateway_inventory...")
         gateway_inventory, inventory_height = process_gateway_inventory(self.settings)
-        self.session.delete(GatewayInventory)
-        self.session.commit()
+        self.engine.execute("DELETE FROM gateway_inventory;")
         gateway_inventory.to_sql("gateway_inventory", con=self.engine, if_exists="append")
         self.inventory_height = inventory_height
         print(f"Done. Inventory up to date as of block {self.inventory_height}")
