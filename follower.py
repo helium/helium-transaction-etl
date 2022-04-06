@@ -153,7 +153,8 @@ class Follower(object):
     def update_denylist(self):
         print("Updating denylist...")
         denylist = get_denylist(self.settings)
-        denylist.to_sql("denylist", con=self.engine, if_exists="replace")
+        self.engine.execute("DELETE FROM gateway_inventory;")
+        denylist.to_sql("denylist", con=self.engine, if_exists="append")
         self.denylist_tag = int(get_latest_denylist_tag())
         print(f"Done. Denylist up to date as of tag {self.denylist_tag}")
 
