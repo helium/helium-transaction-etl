@@ -145,7 +145,11 @@ class Follower(object):
     def update_gateway_inventory(self):
         print("Updating gateway_inventory...")
         gateway_inventory, inventory_height = process_gateway_inventory(self.settings)
-        self.engine.execute("DELETE FROM gateway_inventory;")
+        try:
+            self.session.query(GatewayInventory).delete()
+            self.session.commit()
+        except sqlalchemy.exc.IntegrityError:
+            self.session.rollback()
         gateway_inventory.to_sql("gateway_inventory", con=self.engine, if_exists="append")
         self.inventory_height = inventory_height
         print(f"Done. Inventory up to date as of block {self.inventory_height}")
@@ -153,7 +157,11 @@ class Follower(object):
     def update_denylist(self):
         print("Updating denylist...")
         denylist = get_denylist(self.settings)
-        self.engine.execute("DELETE FROM gateway_inventory;")
+        try:
+            self.session.query(Denylist).delete()
+            self.session.commit()
+        except sqlalchemy.exc.IntegrityError:
+            self.session.rollback()
         denylist.to_sql("denylist", con=self.engine, if_exists="append")
         self.denylist_tag = int(get_latest_denylist_tag())
         print(f"Done. Denylist up to date as of tag {self.denylist_tag}")
