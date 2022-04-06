@@ -23,5 +23,4 @@ class StateChannelCloseV1(BaseModel):
     state_channel: BlockchainStateChannelV1
     conflicts_with: Optional[Any]
     closer: str
-    signature: str
 
