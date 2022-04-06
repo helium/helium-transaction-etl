@@ -44,6 +44,17 @@ class PaymentsParsed(Base):
     nonce = Column(BigInteger)
 
 
+class DataCredits(Base):
+    __tablename__ = "data_credits"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, nullable=False)
+    block = Column(BigInteger)
+    hash = Column(Text)
+    client = Column(Text)
+    num_dcs = Column(Integer)
+    num_packets = Column(Integer)
+
+
 class GatewayInventory(Base):
     __tablename__ = "gateway_inventory"
 

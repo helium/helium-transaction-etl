@@ -5,6 +5,7 @@ from models.block import *
 from models.transactions.poc_receipts_v1 import *
 from models.transactions.payment_v2 import *
 from models.transactions.payment_v1 import *
+from models.transactions.state_channel_close_v1 import *
 from models.migrations import *
 from client import BlockchainNodeClient
 from loaders import *
@@ -160,6 +161,7 @@ class Follower(object):
         block = self.client.block_get(height, None)
         parsed_receipts = []
         parsed_payments = []
+        parsed_summaries = []
         _t = time.time()
 
         for txn in block.transactions:
@@ -217,10 +219,21 @@ class Follower(object):
                         parsed_receipt.tx_power = transaction.path[0].receipt.tx_power
                         parsed_receipt.origin = transaction.path[0].receipt.origin
                     parsed_receipts.append(parsed_receipt)
-                    # elif txn.type == "add_gateway_v1":
+            elif txn.type == "state_channel_close_v1":
+                transaction: StateChannelCloseV1 = self.client.transaction_get(txn.hash, txn.type)
+                for summary in transaction.state_channel.summaries:
+                    parsed_summary = DataCredits(
+                        block=transaction.block,
+                        hash=txn.hash,
+                        client=summary.client,
+                        num_dcs=summary.num_dcs,
+                        num_packets=summary.num_packets
+                    )
+                    parsed_summaries.append(parsed_summary)
 
         self.session.add_all(parsed_receipts)
         self.session.add_all(parsed_payments)
+        self.session.add_all(parsed_summaries)
         self.session.commit()
 
     def delete_old_receipts(self):
