@@ -47,7 +47,7 @@ class PaymentsParsed(Base):
 class DataCredits(Base):
     __tablename__ = "data_credits"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, nullable=False)
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, nullable=False)
     block = Column(BigInteger)
     hash = Column(Text)
     client = Column(Text)
