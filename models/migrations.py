@@ -88,7 +88,7 @@ class FrequencyPlans(Base):
 
     name = Column(Text, primary_key=True)
     frequency_mhz = Column(Integer)
-    geometry = Column(Geometry("MULTIPOLYGON"))
+    geometry = Column(Geometry("GEOMETRY", srid=4326))
 
 
 class FollowerInfo(Base):
