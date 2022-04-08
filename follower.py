@@ -179,7 +179,7 @@ class Follower(object):
         for region in regions["features"]:
             name = region["properties"]["region"]
             frequency_mhz = FREQUENCIES_BY_REGION_NAME[name]
-            geometry = region["geometry"]
+            geometry = json.dumps(region["geometry"])
             try:
                 r = FrequencyPlans(
                     name=name,
