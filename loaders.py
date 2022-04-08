@@ -1,3 +1,5 @@
+import json
+
 import requests
 import os
 import h3
@@ -62,3 +64,21 @@ def get_latest_denylist_tag() -> str:
 
     r = requests.get("https://api.github.com/repos/helium/denylist/releases/latest")
     return r.json()["tag_name"]
+
+
+def get_frequency_plans() -> list[dict]:
+    regions_url = "https://raw.githubusercontent.com/dewi-alliance/hplans/main/regions.geojson"
+    regions_path = "static/regions.geojson"
+    if os.path.exists(regions_path) is False:
+        if os.path.isdir("static") is False:
+            os.mkdir("static")
+        regions_json = requests.get(regions_url).json()
+        with open(regions_path, "w") as f:
+            json.dump(regions_json, f)
+
+    else:
+        with open(regions_path, "r") as f:
+            regions_json = json.load(f)
+
+    return regions_json
+

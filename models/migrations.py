@@ -1,6 +1,7 @@
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy import Column, Text, BigInteger, Integer, Boolean, Float
 from sqlalchemy.dialects.postgresql import UUID, JSONB
+from geoalchemy2 import Geometry
 import uuid
 import os
 
@@ -80,6 +81,14 @@ class Denylist(Base):
     __tablename__ = "denylist"
 
     address = Column(Text, primary_key=True)
+
+
+class FrequencyPlans(Base):
+    __tablename__ = "frequency_plans"
+
+    name = Column(Text, primary_key=True)
+    frequency_mhz = Column(Integer)
+    geometry = Column(Geometry("MULTIPOLYGON"))
 
 
 class FollowerInfo(Base):

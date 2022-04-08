@@ -15,6 +15,8 @@ class Settings(object):
         self._denylist_url = os.getenv('DENYLIST_URL')
         self._denylist_bootstrap: bool = strtobool(os.getenv('DENYLIST_BOOTSTRAP'))
 
+        self._import_frequency_plans: bool = strtobool(os.getenv('IMPORT_FREQUENCY_PLANS'))
+
         self._block_inventory_size = os.getenv('BLOCK_INVENTORY_SIZE')
         self._logs_path = os.getenv('LOGS_PATH')
         self._latest_inventories_url = os.getenv('LATEST_INVENTORIES_URL')
@@ -54,3 +56,7 @@ class Settings(object):
     @property
     def denylist_bootstrap(self):
         return self._denylist_bootstrap
+
+    @property
+    def import_frequency_plans(self):
+        return self._import_frequency_plans
