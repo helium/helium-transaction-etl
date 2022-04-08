@@ -10,6 +10,7 @@ from models.migrations import *
 from client import BlockchainNodeClient
 from loaders import *
 from settings import Settings
+from constants import *
 
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
@@ -175,10 +176,9 @@ class Follower(object):
     def import_frequency_plans(self):
         print("Importing frequency plans...")
         regions = get_frequency_plans()
-        rows = []
         for region in regions["features"]:
             name = region["properties"]["region"]
-            frequency_mhz = int(name[-3:]) if name != "Unknown" else -1
+            frequency_mhz = FREQUENCIES_BY_REGION_NAME[name]
             geometry = region["geometry"]
             try:
                 r = FrequencyPlans(
