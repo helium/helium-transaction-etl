@@ -8,6 +8,8 @@ import pandas as pd
 import parse
 from settings import Settings
 
+from typing import List
+
 
 def geo_index(h):
     # properly format the geospatial index in geoJSON format from the hex
@@ -66,7 +68,7 @@ def get_latest_denylist_tag() -> str:
     return r.json()["tag_name"]
 
 
-def get_frequency_plans() -> list[dict]:
+def get_frequency_plans() -> List[dict]:
     regions_url = "https://raw.githubusercontent.com/dewi-alliance/hplans/main/regions.geojson"
     regions_path = "static/regions.geojson"
     if os.path.exists(regions_path) is False:
