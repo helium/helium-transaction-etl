@@ -28,7 +28,21 @@ After backfilling all blocks stored on the node, the service will listen for new
 
 ## Limitations
 
-**At this point, the service ONLY populates the `challenge_receipts_parsed` and `payments_parsed` tables. `gateway_inventory` is refreshed daily via a bulk download from [DeWi ETL Data Dumps](https://dewi-etl-data-dumps.herokuapp.com/).**
+**If you need deep historical records of the Helium ledger, use [blockchain-etl](https://github.com/helium/blockchain-etl) or the public API. This tool is best suited for short-term analyses (~5-10 days) of recent chain events.**
 
+At this point, the service populates the following tables:
+* `challenge_receipts_parsed`
+* `payments_parsed`
+* `gateway_inventory` (refreshed daily via a bulk download from [DeWi ETL Data Dumps](https://dewi-etl-data-dumps.herokuapp.com/))
+* `denylist`
 
+See [migrations.py](models/migrations.py) for the SQLAlchemy schema definitions.
+
+I recommend installing `postgis` and the [`h3`](https://github.com/bytesandbrains/h3-pg) extensions on your postgres instance for additional functionality, such as distance calculations as kRing-based queries.
+
+## Related Projects
+
+* [h3-countries](https://github.com/evandiewald/h3-countries): Postgres-based mapping of h3 indices to country codes.
+* [dewi-alliance/hplans](https://github.com/dewi-alliance/hplans): Helium frequency plan regions in GeoJSON format.
+* [dewi-alliance/helium-etl-lite](https://github.com/dewi-alliance/helium-etl-lite): A general-purpose light ETL for the Helium blockchain. 
 
