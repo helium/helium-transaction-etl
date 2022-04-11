@@ -16,6 +16,7 @@ class ChallengeReceiptsParsed(Base):
     block = Column(BigInteger)
     hash = Column(Text)
     time = Column(BigInteger)
+    challenger = Column(Text)
     transmitter_address = Column(Text)
     tx_power = Column(Integer)
     origin = Column(Text)

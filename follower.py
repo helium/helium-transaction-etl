@@ -238,6 +238,7 @@ class Follower(object):
                         block=block.height,
                         hash=txn.hash,
                         time=block.time,
+                        challenger=transaction.challenger,
                         transmitter_address=transaction.path[0].challengee,
                         witness_address=witness.gateway,
                         witness_is_valid=witness.is_valid,
