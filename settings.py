@@ -57,6 +57,3 @@ class Settings(object):
     def denylist_bootstrap(self):
         return self._denylist_bootstrap
 
-    @property
-    def import_frequency_plans(self):
-        return self._import_frequency_plans

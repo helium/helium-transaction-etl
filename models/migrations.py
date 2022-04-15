@@ -84,14 +84,6 @@ class Denylist(Base):
     address = Column(Text, primary_key=True)
 
 
-class FrequencyPlans(Base):
-    __tablename__ = "frequency_plans"
-
-    name = Column(Text, primary_key=True)
-    frequency_mhz = Column(Integer)
-    geometry = Column(Geometry("GEOMETRY", srid=4326))
-
-
 class FollowerInfo(Base):
     __tablename__ = "follower_info"
 

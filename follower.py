@@ -173,24 +173,6 @@ class Follower(object):
         self.denylist_tag = int(get_latest_denylist_tag())
         print(f"Done. Denylist up to date as of tag {self.denylist_tag}")
 
-    def import_frequency_plans(self):
-        print("Importing frequency plans...")
-        regions = get_frequency_plans()
-        for region in regions["features"]:
-            name = region["properties"]["region"]
-            frequency_mhz = FREQUENCIES_BY_REGION_NAME[name]
-            geometry = json.dumps(region["geometry"])
-            try:
-                r = FrequencyPlans(
-                    name=name,
-                    frequency_mhz=frequency_mhz,
-                    geometry=func.ST_GeomFromGeoJSON(geometry)
-                )
-                self.session.add(r)
-            except sqlalchemy.exc.IntegrityError:
-                pass
-        self.session.commit()
-
 
     def process_block(self, height: int):
         block = self.client.block_get(height, None)
