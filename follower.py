@@ -274,6 +274,8 @@ class Follower(object):
 
     def delete_old_receipts(self):
         self.session.query(ChallengeReceiptsParsed).filter(ChallengeReceiptsParsed.block < (self.sync_height - self.settings.block_inventory_size)).delete()
+        self.session.query(DataCredits).filter(DataCredits.block < (self.sync_height - self.settings.block_inventory_size)).delete()
+        self.session.query(PaymentsParsed).filter(PaymentsParsed.block < (self.sync_height - self.settings.block_inventory_size)).delete()
         self.session.commit()
 
 
