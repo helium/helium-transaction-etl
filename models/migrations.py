@@ -1,6 +1,7 @@
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy import Column, Text, BigInteger, Integer, Boolean, Float
 from sqlalchemy.dialects.postgresql import UUID, JSONB
+from geoalchemy2 import Geometry
 import uuid
 import os
 
@@ -15,6 +16,7 @@ class ChallengeReceiptsParsed(Base):
     block = Column(BigInteger)
     hash = Column(Text)
     time = Column(BigInteger)
+    challenger = Column(Text)
     transmitter_address = Column(Text)
     tx_power = Column(Integer)
     origin = Column(Text)

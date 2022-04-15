@@ -10,9 +10,12 @@ from models.migrations import *
 from client import BlockchainNodeClient
 from loaders import *
 from settings import Settings
+from constants import *
 
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
+
+from geoalchemy2 import func
 
 import time
 import hashlib
@@ -37,6 +40,10 @@ class Follower(object):
         self.denylist_tag: Optional[int] = None
 
     def run(self):
+        if self.settings.import_frequency_plans:
+            self.import_frequency_plans()
+            print("LoRaWAN frequency plan regions imported successfully")
+
         if self.settings.gateway_inventory_bootstrap:
             self.update_gateway_inventory()
             print("Gateway inventory imported successfully")
@@ -166,6 +173,7 @@ class Follower(object):
         self.denylist_tag = int(get_latest_denylist_tag())
         print(f"Done. Denylist up to date as of tag {self.denylist_tag}")
 
+
     def process_block(self, height: int):
         block = self.client.block_get(height, None)
         parsed_receipts = []
@@ -212,6 +220,7 @@ class Follower(object):
                         block=block.height,
                         hash=txn.hash,
                         time=block.time,
+                        challenger=transaction.challenger,
                         transmitter_address=transaction.path[0].challengee,
                         witness_address=witness.gateway,
                         witness_is_valid=witness.is_valid,
@@ -247,6 +256,8 @@ class Follower(object):
 
     def delete_old_receipts(self):
         self.session.query(ChallengeReceiptsParsed).filter(ChallengeReceiptsParsed.block < (self.sync_height - self.settings.block_inventory_size)).delete()
+        self.session.query(DataCredits).filter(DataCredits.block < (self.sync_height - self.settings.block_inventory_size)).delete()
+        self.session.query(PaymentsParsed).filter(PaymentsParsed.block < (self.sync_height - self.settings.block_inventory_size)).delete()
         self.session.commit()
 
 

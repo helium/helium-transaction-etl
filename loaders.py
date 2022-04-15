@@ -1,3 +1,5 @@
+import json
+
 import requests
 import os
 import h3
@@ -5,6 +7,8 @@ from pathlib import Path
 import pandas as pd
 import parse
 from settings import Settings
+
+from typing import List
 
 
 def geo_index(h):
@@ -62,3 +66,5 @@ def get_latest_denylist_tag() -> str:
 
     r = requests.get("https://api.github.com/repos/helium/denylist/releases/latest")
     return r.json()["tag_name"]
+
+
