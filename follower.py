@@ -173,6 +173,7 @@ class Follower(object):
 
         self.session.bulk_insert_mappings(GatewayInventory, entries_to_put)
         self.session.bulk_update_mappings(GatewayInventory, entries_to_update)
+        self.session.flush()
         self.session.commit()
 
         self.inventory_height = inventory_height
