@@ -268,6 +268,8 @@ class Follower(object):
             elif txn.type == "state_channel_close_v1":
                 transaction: StateChannelCloseV1 = self.client.transaction_get(txn.hash, txn.type)
                 for summary in transaction.state_channel.summaries:
+                    if not self.session.query(GatewayInventory.address).where(GatewayInventory.address == summary.client).first():
+                        continue
                     parsed_summary = DataCredits(
                         block=transaction.block,
                         hash=txn.hash,
