@@ -1,3 +1,4 @@
+import pandas as pd
 import psycopg2.errors
 import sqlalchemy.exc
 
@@ -16,6 +17,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
 from geoalchemy2 import func
+import h3
+from haversine import haversine, Unit
 
 import time
 import hashlib
@@ -39,11 +42,9 @@ class Follower(object):
         self.inventory_height: Optional[int] = None
         self.denylist_tag: Optional[int] = None
 
-    def run(self):
-        if self.settings.import_frequency_plans:
-            self.import_frequency_plans()
-            print("LoRaWAN frequency plan regions imported successfully")
+        self.gateway_locations: Optional[pd.DataFrame] = None
 
+    def run(self):
         if self.settings.gateway_inventory_bootstrap:
             self.update_gateway_inventory()
             print("Gateway inventory imported successfully")
@@ -56,6 +57,9 @@ class Follower(object):
             self.get_follower_info()
         except sqlalchemy.exc.NoResultFound:
             pass
+
+        self.gateway_locations = pd.read_sql("SELECT address, location FROM gateway_inventory;", con=self.engine, index_col="address")
+        self.gateway_locations["coordinates"] = self.gateway_locations["location"].map(h3.h3_to_geo)
 
         self.get_first_block()
         self.update_follower_info()
@@ -152,12 +156,31 @@ class Follower(object):
     def update_gateway_inventory(self):
         print("Updating gateway_inventory...")
         gateway_inventory, inventory_height = process_gateway_inventory(self.settings)
-        try:
-            self.session.query(GatewayInventory).delete()
-            self.session.commit()
-        except sqlalchemy.exc.IntegrityError:
-            self.session.rollback()
-        gateway_inventory.to_sql("gateway_inventory", con=self.engine, if_exists="append")
+        gateway_inventory["address"] = gateway_inventory.index
+        # replace instead of delete + append
+        # try:
+        #     self.session.query(GatewayInventory).delete()
+        #     self.session.commit()
+        # except sqlalchemy.exc.IntegrityError:
+        #     self.session.rollback()
+        # gateway_inventory.to_sql("gateway_inventory", con=self.engine, if_exists="replace")
+        gateway_rows = gateway_inventory.to_dict("index")
+
+        entries_to_update, entries_to_put = [], []
+        # Find all customers that needs to be updated and build mappings
+        for each in (
+                self.session.query(GatewayInventory.address).filter(GatewayInventory.address.in_(gateway_rows.keys())).all()
+        ):
+            gateway = gateway_rows.pop(each.address)
+            entries_to_update.append(gateway)
+
+        # Bulk mappings for everything that needs to be inserted
+        entries_to_put = [v for v in gateway_rows.values()]
+
+        self.session.bulk_insert_mappings(GatewayInventory, entries_to_put)
+        self.session.bulk_update_mappings(GatewayInventory, entries_to_update)
+        self.session.commit()
+
         self.inventory_height = inventory_height
         print(f"Done. Inventory up to date as of block {self.inventory_height}")
 
@@ -215,7 +238,13 @@ class Follower(object):
 
             if txn.type == "poc_receipts_v1":
                 transaction: PocReceiptsV1 = self.client.transaction_get(txn.hash, txn.type)
+                if not self.session.query(GatewayInventory.address).where(GatewayInventory.address == transaction.path[0].challengee).first():
+                    continue
+                if not self.session.query(GatewayInventory.address).where(GatewayInventory.address == transaction.challenger).first():
+                    continue
                 for witness in transaction.path[0].witnesses:
+                    if not self.session.query(GatewayInventory.address).where(GatewayInventory.address == witness.gateway).first():
+                        continue
                     parsed_receipt = ChallengeReceiptsParsed(
                         block=block.height,
                         hash=txn.hash,
@@ -230,7 +259,8 @@ class Follower(object):
                         witness_channel=witness.channel,
                         witness_datarate=witness.datarate,
                         witness_frequency=witness.frequency,
-                        witness_timestamp=witness.timestamp
+                        witness_timestamp=witness.timestamp,
+                        distance_km=self.get_distance_between_gateways(transaction.path[0].challengee, witness.gateway)
                     )
 
                     if transaction.path[0].receipt:
@@ -240,6 +270,8 @@ class Follower(object):
             elif txn.type == "state_channel_close_v1":
                 transaction: StateChannelCloseV1 = self.client.transaction_get(txn.hash, txn.type)
                 for summary in transaction.state_channel.summaries:
+                    if not self.session.query(GatewayInventory.address).where(GatewayInventory.address == summary.client).first():
+                        continue
                     parsed_summary = DataCredits(
                         block=transaction.block,
                         hash=txn.hash,
@@ -260,7 +292,16 @@ class Follower(object):
         self.session.query(PaymentsParsed).filter(PaymentsParsed.block < (self.sync_height - self.settings.block_inventory_size)).delete()
         self.session.commit()
 
+    def get_distance_between_gateways(self, tx_address, rx_address):
+        try:
+            return haversine(self.gateway_locations["coordinates"][tx_address],
+                             self.gateway_locations["coordinates"][rx_address],
+                             unit=Unit.KILOMETERS)
+        except KeyError:
+            return None
+
 
 def get_hash_of_dict(d: dict) -> str:
     return hashlib.md5(json.dumps(d, sort_keys=True).encode('utf-8')).hexdigest()
+
 
