@@ -156,6 +156,7 @@ class Follower(object):
     def update_gateway_inventory(self):
         print("Updating gateway_inventory...")
         gateway_inventory, inventory_height = process_gateway_inventory(self.settings)
+        gateway_inventory["address"] = gateway_inventory.index
         # replace instead of delete + append
         # try:
         #     self.session.query(GatewayInventory).delete()
@@ -163,8 +164,23 @@ class Follower(object):
         # except sqlalchemy.exc.IntegrityError:
         #     self.session.rollback()
         # gateway_inventory.to_sql("gateway_inventory", con=self.engine, if_exists="replace")
-        gateway_rows = [GatewayInventory(**kwargs) for kwargs in gateway_inventory.to_dict("records")]
-        self.session.bulk_save_objects(GatewayInventory, gateway_rows, update_changed_only=False)
+        gateway_rows = gateway_inventory.to_dict("index")
+
+        entries_to_update, entries_to_put = [], []
+        # Find all customers that needs to be updated and build mappings
+        for each in (
+                self.session.query(GatewayInventory.address).filter(GatewayInventory.address.in_(gateway_rows.keys())).all()
+        ):
+            gateway = gateway_rows.pop(each.address)
+            entries_to_update.append(gateway)
+
+        # Bulk mappings for everything that needs to be inserted
+        entries_to_put = [v for v in gateway_rows.values()]
+
+        self.session.bulk_insert_mappings(GatewayInventory, entries_to_put)
+        self.session.bulk_update_mappings(GatewayInventory, entries_to_update)
+        self.session.commit()
+
         self.inventory_height = inventory_height
         print(f"Done. Inventory up to date as of block {self.inventory_height}")
 
