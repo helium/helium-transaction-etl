@@ -162,7 +162,9 @@ class Follower(object):
         #     self.session.commit()
         # except sqlalchemy.exc.IntegrityError:
         #     self.session.rollback()
-        gateway_inventory.to_sql("gateway_inventory", con=self.engine, if_exists="replace")
+        # gateway_inventory.to_sql("gateway_inventory", con=self.engine, if_exists="replace")
+        gateway_rows = [GatewayInventory(**kwargs) for kwargs in gateway_inventory.to_dict("records")]
+        self.session.bulk_save_objects(GatewayInventory, gateway_rows, update_changed_only=False)
         self.inventory_height = inventory_height
         print(f"Done. Inventory up to date as of block {self.inventory_height}")
 
