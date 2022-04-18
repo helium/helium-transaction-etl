@@ -60,6 +60,7 @@ class Follower(object):
 
         self.gateway_locations = pd.read_sql("SELECT address, location FROM gateway_inventory;", con=self.engine, index_col="address")
         self.gateway_locations["coordinates"] = self.gateway_locations["location"].map(h3.h3_to_geo)
+        print(f"Num rows in gateway_locations table: {len(self.gateway_locations)}")
 
         self.get_first_block()
         self.update_follower_info()
@@ -157,13 +158,6 @@ class Follower(object):
         print("Updating gateway_inventory...")
         gateway_inventory, inventory_height = process_gateway_inventory(self.settings)
         gateway_inventory["address"] = gateway_inventory.index
-        # replace instead of delete + append
-        # try:
-        #     self.session.query(GatewayInventory).delete()
-        #     self.session.commit()
-        # except sqlalchemy.exc.IntegrityError:
-        #     self.session.rollback()
-        # gateway_inventory.to_sql("gateway_inventory", con=self.engine, if_exists="replace")
         gateway_rows = gateway_inventory.to_dict("index")
 
         entries_to_update, entries_to_put = [], []
