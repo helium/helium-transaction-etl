@@ -1,12 +1,27 @@
 from sqlalchemy.orm import declarative_base, relationship
-from sqlalchemy import Column, Text, BigInteger, Integer, Boolean, Float, DateTime, ForeignKey, CheckConstraint
+from sqlalchemy import Column, Text, BigInteger, Integer, Boolean, Float, DateTime, ForeignKey, CheckConstraint, Enum
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from geoalchemy2 import Geometry
 import uuid
 import os
+import enum
 
 
 Base = declarative_base(bind=os.getenv("POSTGRES_CONNECTION_STR"))
+
+
+class witness_invalid_reason_type(enum.Enum):
+    witness_rssi_too_high = 1
+    incorrect_frequency = 2
+    witness_not_same_region = 3
+    witness_too_close = 4
+    witness_on_incorrect_channel = 5
+    witness_too_far = 6
+
+
+class payment_type(enum.Enum):
+    payment_v1 = 1
+    payment_v2 = 2
 
 
 class ChallengeReceiptsParsed(Base):
@@ -21,7 +36,7 @@ class ChallengeReceiptsParsed(Base):
     origin = Column(Text)
     witness_address = Column(Text, ForeignKey("gateway_inventory.address"), primary_key=True)
     witness_is_valid = Column(Boolean, index=True)
-    witness_invalid_reason = Column(Text)
+    witness_invalid_reason = Column(Enum(witness_invalid_reason_type))
     witness_signal = Column(Integer)
     witness_snr = Column(Float)
     witness_channel = Column(Integer)
@@ -40,7 +55,7 @@ class PaymentsParsed(Base):
     payer = Column(Text, index=True)
     payee = Column(Text, primary_key=True)
     amount = Column(BigInteger)
-    type = Column(Text)
+    type = Column(Enum(payment_type))
     fee = Column(BigInteger)
     nonce = Column(BigInteger)
 
