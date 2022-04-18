@@ -34,7 +34,7 @@ class ChallengeReceiptsParsed(Base):
     transmitter_address = Column(Text, ForeignKey("gateway_inventory.address"), nullable=False)
     tx_power = Column(Integer)
     origin = Column(Text)
-    witness_address = Column(Text, ForeignKey("gateway_inventory.address"), primary_key=True)
+    witness_location = Column(Text)
     witness_is_valid = Column(Boolean, index=True)
     witness_invalid_reason = Column(Enum(witness_invalid_reason_type))
     witness_signal = Column(Integer)
