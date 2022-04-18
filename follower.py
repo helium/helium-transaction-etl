@@ -58,12 +58,12 @@ class Follower(object):
         except sqlalchemy.exc.NoResultFound:
             pass
 
+        self.get_first_block()
+        self.update_follower_info()
+
         self.gateway_locations = pd.read_sql("SELECT address, location FROM gateway_inventory;", con=self.engine, index_col="address")
         self.gateway_locations["coordinates"] = self.gateway_locations["location"].map(h3.h3_to_geo)
         print(f"Num rows in gateway_locations table: {len(self.gateway_locations)}")
-
-        self.get_first_block()
-        self.update_follower_info()
 
         print(f"Blockchain follower starting from block {self.sync_height} / {self.height}")
 
