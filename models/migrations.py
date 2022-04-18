@@ -1,5 +1,5 @@
 from sqlalchemy.orm import declarative_base, relationship
-from sqlalchemy import Column, Text, BigInteger, Integer, Boolean, Float, PrimaryKeyConstraint, ForeignKey, CheckConstraint
+from sqlalchemy import Column, Text, BigInteger, Integer, Boolean, Float, DateTime, ForeignKey, CheckConstraint
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from geoalchemy2 import Geometry
 import uuid
@@ -67,7 +67,7 @@ class GatewayInventory(Base):
     last_block = Column(BigInteger)
     nonce = Column(BigInteger)
     name = Column(Text)
-    first_timestamp = Column(BigInteger)
+    first_timestamp = Column(DateTime)
     reward_scale = Column(Float)
     elevation = Column(Integer)
     gain = Column(Integer)
