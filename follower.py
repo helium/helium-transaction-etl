@@ -254,9 +254,7 @@ class Follower(object):
                         witness_datarate=witness.datarate,
                         witness_frequency=witness.frequency,
                         witness_timestamp=witness.timestamp,
-                        distance_km=haversine(self.gateway_locations["coordinates"][transaction.path[0].challengee],
-                                              self.gateway_locations["coordinates"][witness.gateway],
-                                              unit=Unit.KILOMETERS)
+                        distance_km=self.get_distance_between_gateways(transaction.path[0].challengee, witness.gateway)
                     )
 
                     if transaction.path[0].receipt:
@@ -286,7 +284,18 @@ class Follower(object):
         self.session.query(PaymentsParsed).filter(PaymentsParsed.block < (self.sync_height - self.settings.block_inventory_size)).delete()
         self.session.commit()
 
+    def get_distance_between_gateways(self, tx_address, rx_address):
+        try:
+            return haversine(self.gateway_locations["coordinates"][tx_address],
+                             self.gateway_locations["coordinates"][rx_address],
+                             unit=Unit.KILOMETERS)
+        except KeyError:
+            print(f"Couldn't find location for {tx_address} or {rx_address}")
+            print(f"{self.gateway_locations.head(10)}")
+            return None
+
 
 def get_hash_of_dict(d: dict) -> str:
     return hashlib.md5(json.dumps(d, sort_keys=True).encode('utf-8')).hexdigest()
+
 
