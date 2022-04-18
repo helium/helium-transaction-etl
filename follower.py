@@ -45,10 +45,6 @@ class Follower(object):
         self.gateway_locations: Optional[pd.DataFrame] = None
 
     def run(self):
-        if self.settings.import_frequency_plans:
-            self.import_frequency_plans()
-            print("LoRaWAN frequency plan regions imported successfully")
-
         if self.settings.gateway_inventory_bootstrap:
             self.update_gateway_inventory()
             print("Gateway inventory imported successfully")
