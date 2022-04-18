@@ -238,7 +238,11 @@ class Follower(object):
 
             if txn.type == "poc_receipts_v1":
                 transaction: PocReceiptsV1 = self.client.transaction_get(txn.hash, txn.type)
+                if not self.session.query(GatewayInventory.address).where(GatewayInventory.address == transaction.path[0].challengee).first():
+                    continue
                 for witness in transaction.path[0].witnesses:
+                    if not self.session.query(GatewayInventory.address).where(GatewayInventory.address == witness.gateway).first():
+                        continue
                     parsed_receipt = ChallengeReceiptsParsed(
                         block=block.height,
                         hash=txn.hash,
