@@ -290,8 +290,6 @@ class Follower(object):
                              self.gateway_locations["coordinates"][rx_address],
                              unit=Unit.KILOMETERS)
         except KeyError:
-            print(f"Couldn't find location for {tx_address} or {rx_address}")
-            print(f"{self.gateway_locations.head(10)}")
             return None
 
 
