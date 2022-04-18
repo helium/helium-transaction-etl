@@ -18,3 +18,6 @@ six==1.16.0
 SQLAlchemy==1.4.34
 typing-extensions==4.1.1
 urllib3==1.26.9
+
+psycopg2~=2.9.3
+haversine~=2.5.1

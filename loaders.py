@@ -67,4 +67,3 @@ def get_latest_denylist_tag() -> str:
     r = requests.get("https://api.github.com/repos/helium/denylist/releases/latest")
     return r.json()["tag_name"]
 
-

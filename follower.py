@@ -1,3 +1,4 @@
+import pandas as pd
 import psycopg2.errors
 import sqlalchemy.exc
 
@@ -16,6 +17,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
 from geoalchemy2 import func
+import h3
+from haversine import haversine, Unit
 
 import time
 import hashlib
@@ -39,6 +42,8 @@ class Follower(object):
         self.inventory_height: Optional[int] = None
         self.denylist_tag: Optional[int] = None
 
+        self.gateway_locations: Optional[pd.DataFrame] = None
+
     def run(self):
         if self.settings.import_frequency_plans:
             self.import_frequency_plans()
@@ -56,6 +61,9 @@ class Follower(object):
             self.get_follower_info()
         except sqlalchemy.exc.NoResultFound:
             pass
+
+        self.gateway_locations = pd.read_sql("SELECT address, location FROM gateway_inventory;", con=self.engine, index_col="address")
+        self.gateway_locations["coordinates"] = self.gateway_locations["location"].map(h3.h3_to_geo)
 
         self.get_first_block()
         self.update_follower_info()
@@ -152,12 +160,13 @@ class Follower(object):
     def update_gateway_inventory(self):
         print("Updating gateway_inventory...")
         gateway_inventory, inventory_height = process_gateway_inventory(self.settings)
-        try:
-            self.session.query(GatewayInventory).delete()
-            self.session.commit()
-        except sqlalchemy.exc.IntegrityError:
-            self.session.rollback()
-        gateway_inventory.to_sql("gateway_inventory", con=self.engine, if_exists="append")
+        # replace instead of delete + append
+        # try:
+        #     self.session.query(GatewayInventory).delete()
+        #     self.session.commit()
+        # except sqlalchemy.exc.IntegrityError:
+        #     self.session.rollback()
+        gateway_inventory.to_sql("gateway_inventory", con=self.engine, if_exists="replace")
         self.inventory_height = inventory_height
         print(f"Done. Inventory up to date as of block {self.inventory_height}")
 
@@ -230,7 +239,10 @@ class Follower(object):
                         witness_channel=witness.channel,
                         witness_datarate=witness.datarate,
                         witness_frequency=witness.frequency,
-                        witness_timestamp=witness.timestamp
+                        witness_timestamp=witness.timestamp,
+                        distance_km=haversine(self.gateway_locations["coordinates"][transaction.path[0].challengee],
+                                              self.gateway_locations["coordinates"][witness.gateway],
+                                              unit=Unit.KILOMETERS)
                     )
 
                     if transaction.path[0].receipt:
