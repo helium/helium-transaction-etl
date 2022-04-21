@@ -49,6 +49,10 @@ class Follower(object):
             self.update_gateway_inventory()
             print("Gateway inventory imported successfully")
 
+        if self.settings.locations_bootstrap:
+            self.update_locations()
+            print("Locations updated successfully")
+
         if self.settings.denylist_bootstrap:
             self.update_denylist()
             print("Denylist imported successfully")
