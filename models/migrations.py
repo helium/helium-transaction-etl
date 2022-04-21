@@ -75,7 +75,7 @@ class GatewayInventory(Base):
 
     address = Column(Text, primary_key=True, nullable=False, unique=True)
     owner = Column(Text)
-    location = Column(Text)
+    location = Column(Text) # should be FK to locations.location
     last_poc_challenge = Column(BigInteger)
     last_poc_onion_key_hash = Column(Text)
     first_block = Column(BigInteger)
