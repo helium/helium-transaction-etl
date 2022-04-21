@@ -174,7 +174,7 @@ class Follower(object):
         gateway_rows = gateway_inventory.to_dict("index")
 
         entries_to_update, entries_to_put = [], []
-        # Find all customers that needs to be updated and build mappings
+        # Find all rows that needs to be updated and build mappings
         for each in (
                 self.session.query(GatewayInventory.address).filter(GatewayInventory.address.in_(gateway_rows.keys())).all()
         ):
@@ -192,6 +192,26 @@ class Follower(object):
         self.inventory_height = inventory_height
         print(f"Done. Inventory up to date as of block {self.inventory_height}")
 
+    def update_locations(self):
+        locations, locations_height = process_locations(self.settings)
+        locations["location"] = locations.index
+        location_rows = locations.to_dict("index")
+
+        # Find all new rows and build mappings
+        for each in (
+                self.session.query(Locations.location).filter(Locations.location.in_(location_rows.keys())).all()
+        ):
+            location_rows.pop(each.address)
+
+        # Bulk mappings for everything that needs to be inserted (no need to update these)
+        entries_to_put = [v for v in location_rows.values()]
+        self.session.bulk_insert_mappings(Locations, entries_to_put)
+        self.session.flush()
+        self.session.commit()
+
+        print("Done.")
+
+
     def update_denylist(self):
         print("Updating denylist...")
         denylist = get_denylist(self.settings)
@@ -203,10 +223,6 @@ class Follower(object):
         denylist.to_sql("denylist", con=self.engine, if_exists="append")
         self.denylist_tag = int(get_latest_denylist_tag())
         print(f"Done. Denylist up to date as of tag {self.denylist_tag}")
-
-    def update_locations(self):
-        locations, locations_height = process_locations(self.settings)
-        locations.to_sql("locations", con=self.engine, if_exists="append")
 
     def process_block(self, height: int):
         block = self.client.block_get(height, None)
