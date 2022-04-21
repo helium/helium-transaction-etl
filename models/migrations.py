@@ -102,3 +102,16 @@ class FollowerInfo(Base):
 
     name = Column(Text, primary_key=True)
     value = Column(BigInteger)
+
+
+class Locations(Base):
+    __tablename__ = "locations"
+
+    location = Column(Text, ForeignKey("gateway_inventory.location"), primary_key=True)
+    long_city = Column(Text)
+    short_city = Column(Text)
+    long_state = Column(Text)
+    short_state = Column(Text)
+    long_country = Column(Text)
+    short_country = Column(Text)
+    city_id = Column(Text)

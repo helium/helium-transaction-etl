@@ -40,7 +40,8 @@ def process_gateway_inventory(settings: Settings) -> (pd.DataFrame, int):
 
     data = pd.read_csv(gz_path, compression="gzip")
     data = data.drop(["Unnamed: 0"], axis=1)
-    data = data.dropna()
+    # data = data.dropna()
+    data = data.fillna("")
     data = data.set_index("address")
 
     try:
@@ -67,3 +68,37 @@ def get_latest_denylist_tag() -> str:
     r = requests.get("https://api.github.com/repos/helium/denylist/releases/latest")
     return r.json()["tag_name"]
 
+
+def process_locations(settings: Settings) -> (pd.DataFrame, int):
+    gz_path = Path("locations_latest.csv.gz")
+    csv_path = Path("locations_latest.csv")
+
+    url = settings.latest_inventories_url
+    inventories = requests.get(url).json()
+
+    inventory_raw = requests.get(inventories["locations"]).content
+    with open(gz_path, "wb") as f:
+        f.write(inventory_raw)
+
+    data = pd.read_csv(gz_path, compression="gzip")
+    data = data.drop(["Unnamed: 0", "long_street", "short_street", "search_city", "geometry"], axis=1)
+    # data = data.dropna()
+    data = data.fillna("")
+    data = data.set_index("location")
+
+    try:
+        os.remove(gz_path)
+        os.remove(csv_path)
+    except FileNotFoundError:
+        pass
+
+    inventory_height = int(parse.parse("locations_{0}.csv.gz", inventories["locations"].split("/")[-1])[0])
+
+    return data, inventory_height
+
+
+def get_latest_locations_height(settings: Settings) -> int:
+    url = settings.latest_inventories_url
+    inventories = requests.get(url).json()
+    inventory_height = int(parse.parse("locations_{0}.csv.gz", inventories["locations"].split("/")[-1])[0])
+    return inventory_height

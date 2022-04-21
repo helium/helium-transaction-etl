@@ -91,6 +91,15 @@ class Follower(object):
                         else:
                             print("No new version found.")
 
+                        print("Checking for new dump of locations table")
+                        available_height = get_latest_locations_height(self.settings)
+                        if available_height > self.inventory_height:
+                            print("Found one!")
+                            self.update_locations()
+                        else:
+                            print("No new version found.")
+
+
                     self.process_block(self.sync_height)
                     self.delete_old_receipts()
                     break
@@ -191,6 +200,9 @@ class Follower(object):
         self.denylist_tag = int(get_latest_denylist_tag())
         print(f"Done. Denylist up to date as of tag {self.denylist_tag}")
 
+    def update_locations(self):
+        locations, locations_height = process_locations(self.settings)
+        locations.to_sql("locations", if_exists="ignore")
 
     def process_block(self, height: int):
         block = self.client.block_get(height, None)
