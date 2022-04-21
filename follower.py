@@ -206,7 +206,7 @@ class Follower(object):
 
     def update_locations(self):
         locations, locations_height = process_locations(self.settings)
-        locations.to_sql("locations", con=self.engine, if_exists="ignore")
+        locations.to_sql("locations", con=self.engine, if_exists="append")
 
     def process_block(self, height: int):
         block = self.client.block_get(height, None)
