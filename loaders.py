@@ -81,7 +81,8 @@ def process_locations(settings: Settings) -> (pd.DataFrame, int):
 
     data = pd.read_csv(gz_path, compression="gzip")
     data = data.drop(["Unnamed: 0", "long_street", "short_street", "search_city", "geometry"], axis=1)
-    data = data.dropna()
+    # data = data.dropna()
+    data = data.fillna("")
     data = data.set_index("location")
 
     try:
