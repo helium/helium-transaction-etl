@@ -107,7 +107,7 @@ class FollowerInfo(Base):
 class Locations(Base):
     __tablename__ = "locations"
 
-    location = Column(Text, ForeignKey("gateway_inventory.location"), primary_key=True)
+    location = Column(Text, primary_key=True)
     long_city = Column(Text)
     short_city = Column(Text)
     long_state = Column(Text)
