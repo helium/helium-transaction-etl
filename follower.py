@@ -201,7 +201,7 @@ class Follower(object):
         for each in (
                 self.session.query(Locations.location).filter(Locations.location.in_(location_rows.keys())).all()
         ):
-            location_rows.pop(each.address)
+            location_rows.pop(each.location)
 
         # Bulk mappings for everything that needs to be inserted (no need to update these)
         entries_to_put = [v for v in location_rows.values()]
