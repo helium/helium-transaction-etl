@@ -56,6 +56,10 @@ class BlockchainNodeClient(object):
             return PocReceiptsV1.parse_obj(response)
         elif type == "state_channel_close_v1":
             return StateChannelCloseV1.parse_obj(response)
+        elif type == "assert_location_v1":
+            return AssertLocationV1.parse_obj(response)
+        elif type == "assert_location_v2":
+            return AssertLocationV2.parse_obj(response)
         else:
             raise Exception(f"Unexpected transaction type: {type}")
 
