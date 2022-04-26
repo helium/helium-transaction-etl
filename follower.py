@@ -231,6 +231,7 @@ class Follower(object):
         parsed_receipts = []
         parsed_payments = []
         parsed_summaries = []
+        reasserted_gateways = []
         _t = time.time()
 
         for txn in block.transactions:
@@ -312,14 +313,18 @@ class Follower(object):
 
             elif txn.type in ["assert_location_v1", "assert_location_v2"]:
                 transaction = self.client.transaction_get(txn.hash, txn.type)
-                self.session.query(ChallengeReceiptsParsed).filter(ChallengeReceiptsParsed.witness_address == transaction.gateway).delete()
-                self.session.query(ChallengeReceiptsParsed).filter(ChallengeReceiptsParsed.transmitter_address == transaction.gateway).delete()
-                print(f"Cleared challenges for reasserted gateway: {transaction.gateway}")
-                self.session.commit()
+                reasserted_gateways.append(transaction.gateway)
 
         self.session.add_all(parsed_receipts)
         self.session.add_all(parsed_payments)
         self.session.add_all(parsed_summaries)
+
+        if len(reasserted_gateways) > 0:
+            self.session.query(ChallengeReceiptsParsed).filter(ChallengeReceiptsParsed.witness_address.in_(reasserted_gateways)).delete()
+            self.session.query(ChallengeReceiptsParsed).filter(ChallengeReceiptsParsed.transmitter_address.in_(reasserted_gateways)).delete()
+            print(f"Cleared challenges for {len(reasserted_gateways)} reasserted gateways")
+            self.session.commit()
+
         self.session.commit()
 
     def delete_old_receipts(self):
