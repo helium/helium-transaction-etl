@@ -8,6 +8,8 @@ from models.transactions.payment_v1 import PaymentV1
 from models.transactions.payment_v2 import PaymentV2
 from models.transactions.poc_receipts_v1 import PocReceiptsV1
 from models.transactions.state_channel_close_v1 import StateChannelCloseV1
+from models.transactions.assert_location_v1 import AssertLocationV1
+from models.transactions.assert_location_v2 import AssertLocationV2
 
 
 class BlockchainNodeClient(object):
@@ -43,7 +45,7 @@ class BlockchainNodeClient(object):
             return Block.parse_obj(block_raw)
 
 
-    def transaction_get(self, hash: str, type: str) -> Union[PaymentV1, PaymentV2, PocReceiptsV1, StateChannelCloseV1, None]:
+    def transaction_get(self, hash: str, type: str) -> Union[PaymentV1, PaymentV2, PocReceiptsV1, StateChannelCloseV1, AssertLocationV1, AssertLocationV2, None]:
         params = {"hash": hash}
         response = BaseRPCCall(self.node_address, "transaction_get", params, request_id=None).call(self.session)
         if type == "payment_v1":

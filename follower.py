@@ -7,6 +7,8 @@ from models.transactions.poc_receipts_v1 import *
 from models.transactions.payment_v2 import *
 from models.transactions.payment_v1 import *
 from models.transactions.state_channel_close_v1 import *
+from models.transactions.assert_location_v1 import *
+from models.transactions.assert_location_v2 import *
 from models.migrations import *
 from client import BlockchainNodeClient
 from loaders import *
@@ -307,6 +309,13 @@ class Follower(object):
                         num_packets=summary.num_packets
                     )
                     parsed_summaries.append(parsed_summary)
+
+            elif txn.type in ["assert_location_v1", "assert_location_v2"]:
+                transaction = self.client.transaction_get(txn.hash, txn.type)
+                self.session.query(ChallengeReceiptsParsed).filter(ChallengeReceiptsParsed.witness_address == transaction.gateway).delete()
+                self.session.query(ChallengeReceiptsParsed).filter(ChallengeReceiptsParsed.transmitter_address == transaction.gateway).delete()
+                print(f"Cleared challenges for reasserted gateway: {transaction.gateway}")
+                self.session.commit()
 
         self.session.add_all(parsed_receipts)
         self.session.add_all(parsed_payments)
