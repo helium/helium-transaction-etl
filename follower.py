@@ -78,41 +78,41 @@ class Follower(object):
 
             retry = 0
 
-            while retry < 50:
-                try:
-                    if (self.sync_height - self.inventory_height > 500) and (self.sync_height % 100 == 0):
-                        print("Checking for new dump of gateway_inventory")
-                        available_height = get_latest_inventory_height(self.settings)
-                        if available_height > self.inventory_height:
-                            print("Found one!")
-                            self.update_gateway_inventory()
-                        else:
-                            print("No new version found.")
+            # while retry < 50:
+            #     try:
+            if (self.sync_height - self.inventory_height > 500) and (self.sync_height % 100 == 0):
+                print("Checking for new dump of gateway_inventory")
+                available_height = get_latest_inventory_height(self.settings)
+                if available_height > self.inventory_height:
+                    print("Found one!")
+                    self.update_gateway_inventory()
+                else:
+                    print("No new version found.")
 
-                        print("Checking for new release of denylist")
-                        latest_tag = int(get_latest_denylist_tag())
-                        if latest_tag != self.denylist_tag:
-                            print("Found one!")
-                            self.update_denylist()
-                        else:
-                            print("No new version found.")
+                print("Checking for new release of denylist")
+                latest_tag = int(get_latest_denylist_tag())
+                if latest_tag != self.denylist_tag:
+                    print("Found one!")
+                    self.update_denylist()
+                else:
+                    print("No new version found.")
 
-                        print("Checking for new dump of locations table")
-                        available_height = get_latest_locations_height(self.settings)
-                        if available_height > self.inventory_height:
-                            print("Found one!")
-                            self.update_locations()
-                        else:
-                            print("No new version found.")
+                print("Checking for new dump of locations table")
+                available_height = get_latest_locations_height(self.settings)
+                if available_height > self.inventory_height:
+                    print("Found one!")
+                    self.update_locations()
+                else:
+                    print("No new version found.")
 
 
-                    self.process_block(self.sync_height)
-                    self.delete_old_receipts()
-                    break
-                except (ValidationError, AttributeError):
-                    print("couldn't find transaction...retrying")
-                    time.sleep(10)
-                    retry += 1
+            self.process_block(self.sync_height)
+            self.delete_old_receipts()
+                # break
+                # except (ValidationError, AttributeError):
+                #     print("couldn't find transaction...retrying")
+                #     time.sleep(10)
+                #     retry += 1
             self.sync_height += 1
 
             print(f"Block {self.sync_height - 1} synced in {time.time() - t} seconds...")
