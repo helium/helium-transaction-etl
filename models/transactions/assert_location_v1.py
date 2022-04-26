@@ -6,10 +6,10 @@ class AssertLocationV1(BaseModel):
     gateway: str
     owner: str
     payer: str
-    gateway_signature: str
-    owner_signature: str
-    payer_signature: str
+    gateway_signature: Optional[str]
+    owner_signature: Optional[str]
+    payer_signature: Optional[str]
     location: str
     nonce: int
-    staking_fee: int
+    staking_fee: Optional[int]
     fee: int
