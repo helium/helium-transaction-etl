@@ -26,6 +26,7 @@ import time
 import hashlib
 import json
 from pydantic.error_wrappers import ValidationError
+from requests.exceptions import ConnectionError
 
 
 class Follower(object):
@@ -45,6 +46,7 @@ class Follower(object):
         self.denylist_tag: Optional[int] = None
 
         self.gateway_locations: Optional[pd.DataFrame] = None
+        self.reasserted_gateways = []
 
     def run(self):
         if self.settings.gateway_inventory_bootstrap:
@@ -78,41 +80,43 @@ class Follower(object):
 
             retry = 0
 
-            # while retry < 50:
-            #     try:
-            if (self.sync_height - self.inventory_height > 500) and (self.sync_height % 100 == 0):
-                print("Checking for new dump of gateway_inventory")
-                available_height = get_latest_inventory_height(self.settings)
-                if available_height > self.inventory_height:
-                    print("Found one!")
-                    self.update_gateway_inventory()
-                else:
-                    print("No new version found.")
+            while retry < 50:
+                try:
+                    if (self.sync_height - self.inventory_height > 500) and (self.sync_height % 100 == 0):
+                        print("Checking for new dump of gateway_inventory")
+                        available_height = get_latest_inventory_height(self.settings)
+                        if available_height > self.inventory_height:
+                            print("Found one!")
+                            self.update_gateway_inventory()
+                        else:
+                            print("No new version found.")
 
-                print("Checking for new release of denylist")
-                latest_tag = int(get_latest_denylist_tag())
-                if latest_tag != self.denylist_tag:
-                    print("Found one!")
-                    self.update_denylist()
-                else:
-                    print("No new version found.")
+                        print("Checking for new release of denylist")
+                        latest_tag = int(get_latest_denylist_tag())
+                        if latest_tag != self.denylist_tag:
+                            print("Found one!")
+                            self.update_denylist()
+                        else:
+                            print("No new version found.")
 
-                print("Checking for new dump of locations table")
-                available_height = get_latest_locations_height(self.settings)
-                if available_height > self.inventory_height:
-                    print("Found one!")
-                    self.update_locations()
-                else:
-                    print("No new version found.")
+                        print("Checking for new dump of locations table")
+                        available_height = get_latest_locations_height(self.settings)
+                        if available_height > self.inventory_height:
+                            print("Found one!")
+                            self.update_locations()
+                        else:
+                            print("No new version found.")
 
+                        print("Deleting receipts for reasserted gateways")
+                        self.delete_reasserted_receipts()
 
-            self.process_block(self.sync_height)
-            self.delete_old_receipts()
-                # break
-                # except (ValidationError, AttributeError):
-                #     print("couldn't find transaction...retrying")
-                #     time.sleep(10)
-                #     retry += 1
+                    self.process_block(self.sync_height)
+                    self.delete_old_receipts()
+                    break
+                except (ValidationError, AttributeError, ConnectionError):
+                    print("couldn't find transaction...retrying")
+                    time.sleep(10)
+                    retry += 1
             self.sync_height += 1
 
             print(f"Block {self.sync_height - 1} synced in {time.time() - t} seconds...")
@@ -231,7 +235,6 @@ class Follower(object):
         parsed_receipts = []
         parsed_payments = []
         parsed_summaries = []
-        reasserted_gateways = []
         _t = time.time()
 
         for txn in block.transactions:
@@ -313,18 +316,11 @@ class Follower(object):
 
             elif txn.type in ["assert_location_v1", "assert_location_v2"]:
                 transaction = self.client.transaction_get(txn.hash, txn.type)
-                reasserted_gateways.append(transaction.gateway)
+                self.reasserted_gateways.append(transaction.gateway)
 
         self.session.add_all(parsed_receipts)
         self.session.add_all(parsed_payments)
         self.session.add_all(parsed_summaries)
-
-        if len(reasserted_gateways) > 0:
-            self.session.query(ChallengeReceiptsParsed).filter(ChallengeReceiptsParsed.witness_address.in_(reasserted_gateways)).delete()
-            self.session.query(ChallengeReceiptsParsed).filter(ChallengeReceiptsParsed.transmitter_address.in_(reasserted_gateways)).delete()
-            print(f"Cleared challenges for {len(reasserted_gateways)} reasserted gateways")
-            self.session.commit()
-
         self.session.commit()
 
     def delete_old_receipts(self):
@@ -332,6 +328,14 @@ class Follower(object):
         self.session.query(DataCredits).filter(DataCredits.block < (self.sync_height - self.settings.block_inventory_size)).delete()
         self.session.query(PaymentsParsed).filter(PaymentsParsed.block < (self.sync_height - self.settings.block_inventory_size)).delete()
         self.session.commit()
+
+    def delete_reasserted_receipts(self):
+        if len(self.reasserted_gateways) > 0:
+            self.session.query(ChallengeReceiptsParsed).filter(ChallengeReceiptsParsed.witness_address.in_(self.reasserted_gateways)).delete()
+            self.session.query(ChallengeReceiptsParsed).filter(ChallengeReceiptsParsed.transmitter_address.in_(self.reasserted_gateways)).delete()
+            print(f"Cleared challenges for {len(self.reasserted_gateways)} reasserted gateways")
+            self.session.commit()
+            self.reasserted_gateways = []
 
     def get_distance_between_gateways(self, tx_address, rx_address):
         try:
