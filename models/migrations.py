@@ -94,6 +94,7 @@ class GatewayInventory(Base):
 class Denylist(Base):
     __tablename__ = "denylist"
 
+    index = Column(Integer)
     address = Column(Text, ForeignKey("gateway_inventory.address"), primary_key=True)
 
 
