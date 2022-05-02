@@ -95,7 +95,7 @@ class Denylist(Base):
     __tablename__ = "denylist"
 
     index = Column(Integer)
-    address = Column(Text, ForeignKey("gateway_inventory.address"), primary_key=True)
+    address = Column(Text, primary_key=True)
 
 
 class FollowerInfo(Base):
