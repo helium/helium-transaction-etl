@@ -21,7 +21,8 @@ if __name__ == "__main__":
         print("Running migrations...")
         engine = create_engine(os.getenv("POSTGRES_CONNECTION_STR"))
         Base.metadata.create_all(engine)
-        engine.execute(detailed_receipts_sql)
+        with engine.connect() as con:
+            res = con.execute(detailed_receipts_sql)
         print("done.")
 
     if args.start:
