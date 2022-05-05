@@ -115,3 +115,42 @@ class Locations(Base):
     long_country = Column(Text)
     short_country = Column(Text)
     city_id = Column(Text)
+
+
+detailed_receipts_sql = """"CREATE OR REPLACE VIEW detailed_receipts as
+
+(select
+
+a.transmitter_address as tx_address,
+a.witness_address as rx_address,
+a.witness_signal as witness_signal,
+a.witness_snr as witness_snr,
+a.distance_km,
+
+b.reward_scale as tx_reward_scale,
+b.payer as tx_payer,
+b.first_block as tx_first_block,
+
+c.reward_scale as rx_reward_scale,
+c.payer as rx_payer,
+c.first_block as rx_first_block,
+
+(CASE WHEN d.address IS NOT NULL
+   THEN 1
+   ELSE 0
+END) as tx_on_denylist,
+
+(CASE WHEN e.address IS NOT NULL
+   THEN 1
+   ELSE 0
+END) as rx_on_denylist
+
+from challenge_receipts_parsed a
+join gateway_inventory b
+    on a.transmitter_address = b.address
+join gateway_inventory c
+    on a.witness_address = c.address
+left join denylist d
+    on a.transmitter_address = d.address
+left join denylist e
+    on a.witness_address = e.address);"""

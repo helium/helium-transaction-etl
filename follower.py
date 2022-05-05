@@ -269,7 +269,7 @@ class Follower(object):
                     )
                     parsed_payments.append(parsed_payment)
 
-            if txn.type == "poc_receipts_v1":
+            elif txn.type == "poc_receipts_v1":
                 transaction: PocReceiptsV1 = self.client.transaction_get(txn.hash, txn.type)
                 if not self.session.query(GatewayInventory.address).where(GatewayInventory.address == transaction.path[0].challengee).first():
                     continue
