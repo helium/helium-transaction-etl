@@ -118,7 +118,7 @@ class Locations(Base):
     city_id = Column(Text)
 
 
-detailed_receipts_sql = """"CREATE OR REPLACE VIEW detailed_receipts as
+detailed_receipts_sql = """CREATE OR REPLACE VIEW detailed_receipts as
 
 (select
 
