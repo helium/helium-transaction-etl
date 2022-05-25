@@ -4,6 +4,7 @@ import sqlalchemy.exc
 
 from models.block import *
 from models.transactions.poc_receipts_v1 import *
+from models.transactions.poc_receipts_v2 import *
 from models.transactions.payment_v2 import *
 from models.transactions.payment_v1 import *
 from models.transactions.state_channel_close_v1 import *
@@ -25,6 +26,7 @@ from haversine import haversine, Unit
 import time
 import hashlib
 import json
+from typing import Union
 from pydantic.error_wrappers import ValidationError
 from requests.exceptions import ConnectionError
 
@@ -269,8 +271,8 @@ class Follower(object):
                     )
                     parsed_payments.append(parsed_payment)
 
-            elif txn.type == "poc_receipts_v1":
-                transaction: PocReceiptsV1 = self.client.transaction_get(txn.hash, txn.type)
+            elif txn.type in ["poc_receipts_v1", "poc_receipts_v2"]:
+                transaction: Union[PocReceiptsV1, PocReceiptsV2] = self.client.transaction_get(txn.hash, txn.type)
                 if not self.session.query(GatewayInventory.address).where(GatewayInventory.address == transaction.path[0].challengee).first():
                     continue
                 if not self.session.query(GatewayInventory.address).where(GatewayInventory.address == transaction.challenger).first():
