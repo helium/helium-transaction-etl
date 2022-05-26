@@ -27,11 +27,11 @@ class payment_type(enum.Enum):
 class ChallengeReceiptsParsed(Base):
     __tablename__ = "challenge_receipts_parsed"
 
-    block = Column(BigInteger, nullable=False, index=True)
+    block = Column(BigInteger, nullable=False)
     hash = Column(Text, nullable=False, primary_key=True)
     time = Column(BigInteger, nullable=False)
     challenger = Column(Text, nullable=False)
-    transmitter_address = Column(Text, ForeignKey("gateway_inventory.address"), nullable=False)
+    transmitter_address = Column(Text, ForeignKey("gateway_inventory.address"), nullable=False, index=True)
     tx_power = Column(Integer)
     origin = Column(Text)
     witness_address = Column(Text, ForeignKey("gateway_inventory.address"), nullable=False, primary_key=True)
@@ -43,7 +43,7 @@ class ChallengeReceiptsParsed(Base):
     witness_datarate = Column(Text)
     witness_frequency = Column(Float)
     witness_timestamp = Column(BigInteger)
-    distance_km = Column(Float, index=True)
+    distance_km = Column(Float)
 
 
 class PaymentsParsed(Base):
