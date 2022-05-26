@@ -275,8 +275,6 @@ class Follower(object):
                 transaction: Union[PocReceiptsV1, PocReceiptsV2] = self.client.transaction_get(txn.hash, txn.type)
                 if not self.session.query(GatewayInventory.address).where(GatewayInventory.address == transaction.path[0].challengee).first():
                     continue
-                if not self.session.query(GatewayInventory.address).where(GatewayInventory.address == transaction.challenger).first():
-                    continue
                 for witness in transaction.path[0].witnesses:
                     if not self.session.query(GatewayInventory.address).where(GatewayInventory.address == witness.gateway).first():
                         continue
@@ -323,7 +321,11 @@ class Follower(object):
         self.session.add_all(parsed_receipts)
         self.session.add_all(parsed_payments)
         self.session.add_all(parsed_summaries)
-        self.session.commit()
+        try:
+            self.session.commit()
+        except:
+            print("Error adding transactions...rolling back.")
+            self.session.rollback()
 
     def delete_old_receipts(self):
         self.session.query(ChallengeReceiptsParsed).filter(ChallengeReceiptsParsed.block < (self.sync_height - self.settings.block_inventory_size)).delete()

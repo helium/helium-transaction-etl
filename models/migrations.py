@@ -30,7 +30,7 @@ class ChallengeReceiptsParsed(Base):
     block = Column(BigInteger, nullable=False, index=True)
     hash = Column(Text, nullable=False, primary_key=True)
     time = Column(BigInteger, nullable=False)
-    challenger = Column(Text, ForeignKey("gateway_inventory.address"), nullable=False)
+    challenger = Column(Text, nullable=False)
     transmitter_address = Column(Text, ForeignKey("gateway_inventory.address"), nullable=False)
     tx_power = Column(Integer)
     origin = Column(Text)
