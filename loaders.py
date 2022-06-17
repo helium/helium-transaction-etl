@@ -40,20 +40,9 @@ def process_gateway_inventory(settings: Settings) -> (pd.DataFrame, int):
 
     data = pd.read_csv(gz_path, compression="gzip")
     data = data.drop(["Unnamed: 0"], axis=1)
-    data = data.fillna({"location": "",
-                        "last_poc_challenge": 0,
-                        "last_poc_onion_key_hash": "",
-                        "first_block": 0,
-                        "last_block": 0,
-                        "nonce": 0,
-                        "name": "",
-                        "first_timestamp": 0,
-                        "reward_scale": 0.0,
-                        "elevation": 0,
-                        "gain": 0,
-                        "location_hex": "",
-                        "mode": "",
-                        "payer": ""})
+    # fill last_poc_onion_key_hash - other nans mean the hotspot hasn't been asserted/activated yet
+    data = data.fillna({"last_poc_onion_key_hash": ""})
+    data = data.dropna()
     data = data.set_index("address")
 
     try:
