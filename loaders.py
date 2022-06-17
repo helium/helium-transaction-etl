@@ -40,7 +40,7 @@ def process_gateway_inventory(settings: Settings) -> (pd.DataFrame, int):
 
     data = pd.read_csv(gz_path, compression="gzip")
     data = data.drop(["Unnamed: 0"], axis=1)
-    data = data.dropna()
+    data = data.fillna('')
     data = data.set_index("address")
 
     try:

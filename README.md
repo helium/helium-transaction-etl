@@ -40,6 +40,8 @@ See [migrations.py](models/migrations.py) for the SQLAlchemy schema definitions.
 
 I recommend installing `postgis` and the [`h3`](https://github.com/bytesandbrains/h3-pg) extensions on your postgres instance for additional functionality, such as distance calculations as kRing-based queries.
 
+**Note**: Because the ETL deletes rows that are older than the `BLOCK_INVENTORY_SIZE` environment variable, certain tables - namely `challenge_receipts_parsed` - can get bogged down with a large number of dead tuples. I strongly recommend implementing a regular `VACUUM` operation to alleviate this issue. You can schedule the jobs using a tool like [`pg_cron`](https://www.citusdata.com/blog/2016/09/09/pgcron-run-periodic-jobs-in-postgres/).
+
 ## Related Projects
 
 * [h3-countries](https://github.com/evandiewald/h3-countries): Postgres-based mapping of h3 indices to country codes.
