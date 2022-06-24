@@ -61,6 +61,8 @@ def get_denylist(settings: Settings) -> pd.DataFrame:
     denylist = pd.DataFrame(requests.get(settings.denylist_url).text.split(",\n"))
     denylist.columns = ["address"]
     denylist.set_index("address")
+    # occasional duplicate entries
+    denylist = denylist.drop_duplicates()
     return denylist
 
 
