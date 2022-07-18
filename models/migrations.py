@@ -118,6 +118,18 @@ class Locations(Base):
     city_id = Column(Text)
 
 
+class TopographyResults(Base):
+    # used by helium-topography API: https://github.com/evandiewald/helium-topography
+    __tablename__ = "topography_results"
+
+    address = Column(Text, nullable=False, primary_key=True)
+    percent_predictions_within_5_res8_krings = Column(Text)
+    prediction_error_km = Column(Float)
+    n_outliers = Column(BigInteger)
+    n_beaconers_heard = Column(BigInteger)
+    block = Column(BigInteger)
+
+
 detailed_receipts_sql = """CREATE OR REPLACE VIEW detailed_receipts as
 
 (select

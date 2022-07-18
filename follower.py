@@ -121,10 +121,10 @@ class Follower(object):
                     retry += 1
             self.sync_height += 1
 
-            print(f"Block {self.sync_height - 1} synced in {time.time() - t} seconds...")
             self.update_follower_info()
             if self.sync_height >= self.height:
                 time.sleep(10)
+            print(f"Block {self.sync_height - 1} synced in {time.time() - t} seconds...")
 
     def get_follower_info(self):
         self.sync_height = self.session.query(FollowerInfo.value).filter(FollowerInfo.name == "sync_height").one()[0]
@@ -237,7 +237,6 @@ class Follower(object):
         parsed_receipts = []
         parsed_payments = []
         parsed_summaries = []
-        _t = time.time()
 
         for txn in block.transactions:
             if txn.type == "payment_v1":
