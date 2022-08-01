@@ -34,12 +34,7 @@ def process_gateway_inventory(settings: Settings) -> (pd.DataFrame, int):
     url = settings.latest_inventories_url
     inventories = requests.get(url).json()
 
-    inventory_raw = requests.get(inventories["gateway_inventory"]).content
-    with open(gz_path, "wb") as f:
-        f.write(inventory_raw)
-
-    data = pd.read_csv(gz_path, compression="gzip")
-    data = data.drop(["Unnamed: 0"], axis=1)
+    data = pd.read_csv(inventories["gateway_inventory"])
     # fill last_poc_onion_key_hash - other nans mean the hotspot hasn't been asserted/activated yet
     data = data.fillna({"last_poc_onion_key_hash": ""})
     data = data.dropna()
@@ -79,13 +74,8 @@ def process_locations(settings: Settings) -> (pd.DataFrame, int):
     url = settings.latest_inventories_url
     inventories = requests.get(url).json()
 
-    inventory_raw = requests.get(inventories["locations"]).content
-    with open(gz_path, "wb") as f:
-        f.write(inventory_raw)
-
-    data = pd.read_csv(gz_path, compression="gzip")
-    data = data.drop(["Unnamed: 0", "long_street", "short_street", "search_city", "geometry"], axis=1)
-    # data = data.dropna()
+    data = pd.read_csv(inventories["locations"])
+    data = data.drop(["long_street", "short_street", "search_city", "geometry"], axis=1)
     data = data.fillna("")
     data = data.set_index("location")
 
