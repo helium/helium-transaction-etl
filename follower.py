@@ -45,6 +45,7 @@ class Follower(object):
         self.first_block: Optional[int] = None
         self.sync_height: Optional[int] = None
         self.inventory_height: Optional[int] = None
+        self.locations_height: Optional[int] = None
         self.denylist_tag: Optional[int] = None
 
         self.gateway_locations: Optional[pd.DataFrame] = None
@@ -103,7 +104,7 @@ class Follower(object):
 
                         print("Checking for new dump of locations table")
                         available_height = get_latest_locations_height(self.settings)
-                        if available_height > self.inventory_height:
+                        if available_height > self.locations_height:
                             print("Found one!")
                             self.update_locations()
                         else:
@@ -217,6 +218,7 @@ class Follower(object):
         self.session.flush()
         self.session.commit()
 
+        self.locations_height = locations_height
         print("Done.")
 
 
