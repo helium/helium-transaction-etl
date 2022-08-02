@@ -45,7 +45,7 @@ class Follower(object):
         self.first_block: Optional[int] = None
         self.sync_height: Optional[int] = None
         self.inventory_height: Optional[int] = None
-        self.locations_height: Optional[int] = None
+        self.locations_height: Optional[int] = 0
         self.denylist_tag: Optional[int] = None
 
         self.gateway_locations: Optional[pd.DataFrame] = None
