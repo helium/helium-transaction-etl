@@ -45,6 +45,18 @@ At this point, the service populates the following tables:
 
 See [migrations.py](models/migrations.py) for the SQLAlchemy schema definitions.
 
+## Docker
+
+Build image with:
+
+`make docker-build`
+
+Then start it with:
+
+`make docker-start`
+
+To learn more: `make help`
+
 ## Related Projects
 
 * [h3-countries](https://github.com/evandiewald/h3-countries): Postgres-based mapping of h3 indices to country codes.
