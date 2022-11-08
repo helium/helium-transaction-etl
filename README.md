@@ -57,6 +57,32 @@ Then start it with:
 
 To learn more: `make help`
 
+### Updating with Docker
+
+Navigate to your copy of the `helium-transaction-etl` repository.
+
+`cd /path/to/helium-transaction-etl`
+
+Stop the container and remove it.
+
+`make docker-clean`
+
+Update the repository.
+
+`git pull`
+
+Build image.
+
+`make docker-build`
+
+Start the updated Docker container.
+
+`make docker-start`
+
+See logs.
+
+`docker logs transaction-etl`
+
 ## Related Projects
 
 * [h3-countries](https://github.com/evandiewald/h3-countries): Postgres-based mapping of h3 indices to country codes.
