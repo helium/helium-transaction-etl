@@ -12,7 +12,7 @@ docker-build: #: Build docker image
 docker-start: #: Start new container
 	docker run -d --init \
 		--network="host" \
-		--name= transaction-etl \
+		--name transaction-etl \
 		--restart unless-stopped \
 		--cpus 2 \
 		--memory 5g \
